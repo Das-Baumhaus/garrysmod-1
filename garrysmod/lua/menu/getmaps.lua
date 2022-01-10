@@ -406,7 +406,7 @@ function AddCustomMap( map, category )
 		table.RemoveByValue( custommaps, map)
 	end
 	custommaps[map] = category
-	
+
 	cookie.Set( "custommaps", util.TableToJSON(custommaps, false))
 
 	RefreshMaps( false )
@@ -419,10 +419,9 @@ function RemoveCustomMap( map )
 
 	LoadCustom()
 
-	if ( table.HasValue( custommaps, map) ) then
-		table.RemoveByValue( custommaps, map)
+	if custommaps[map] != nil then
+		custommaps[map] = nil
 	end
-
 	cookie.Set( "custommaps", util.TableToJSON(custommaps, false) )
 
 	RefreshMaps( false )
@@ -456,10 +455,76 @@ function LoadLastMap()
 
 end
 
-concommand.Add("custommap_add", function ( _, _, args )
-	AddCustomMap( args[1], args[2] )
-end)
+function OpenCustomMapsPanel()
+	local selected
 
-concommand.Add("custommap_del", function ( _, _, args )
-	RemoveCustomMap( args[1] )
-end)
+	local frame = vgui.Create("DFrame")
+	local maplist = vgui.Create("DListView", frame)
+	local label = vgui.Create("DLabel", frame)
+	local entry = vgui.Create("DTextEntry", frame)
+	local change = vgui.Create("DButton", frame)
+	local reset = vgui.Create("DButton", frame)
+
+	frame:SetSize(ScrW() / 3, ScrH() / 3)
+	frame:Center()
+	frame:SetTitle("Custom Map Category")
+	frame:SetDraggable(false)
+	frame:SetVisible(true)
+	frame:MakePopup()
+
+	label:SetPos(frame:GetWide() / 2.5, frame:GetTall() / 2 + 10)
+	label:SetSize(frame:GetWide() / 2, frame:GetTall() / 6)
+	label:SetText("Selected Map : None \nSelected Category : None")
+
+	entry:SetPos(2, frame:GetTall() / 1.5 + 10)
+	entry:SetSize(frame:GetWide() - 4, frame:GetTall() / 10)
+	entry:SetPlaceholderText("Enter new Map Category")
+
+	change:SetPos(frame:GetWide() / 4, frame:GetTall() / 1.1)
+	change:SetSize(frame:GetWide() / 2, frame:GetTall() / 14)
+	change:SetText("Change")
+	change:SetEnabled(false)
+	change.DoClick = function()
+		if selected != nil then
+			AddCustomMap( selected, entry:GetValue() )
+			maplist:Clear()
+			for a, b in pairs(GetMapList()) do
+				for _, d in pairs(b) do
+					maplist:AddLine( d, a )
+				end
+			end
+		end
+	end
+
+	reset:SetPos(frame:GetWide() / 4, frame:GetTall() / 1.2)
+	reset:SetSize(frame:GetWide() / 2, frame:GetTall() / 14)
+	reset:SetText("Reset")
+	reset:SetEnabled(false)
+	reset.DoClick = function()
+		if selected != nil then
+			RemoveCustomMap( selected )
+			maplist:Clear()
+			for a, b in pairs(GetMapList()) do
+				for _, d in pairs(b) do
+					maplist:AddLine( d, a )
+				end
+			end
+		end
+	end
+
+	maplist:SetPos(2, 25)
+	maplist:SetSize(frame:GetWide() - 4, frame:GetTall() / 2.5)
+	maplist:AddColumn("Map")
+	maplist:AddColumn("Category")
+	for a, b in pairs(GetMapList()) do
+		for _, d in pairs(b) do
+			maplist:AddLine( d, a )
+		end
+	end
+	maplist.OnRowSelected = function( panel, rowIndex, row )
+		selected = row:GetValue(1)
+		label:SetText("Selected Map : ".. selected .. "\nSelected Category : ".. row:GetValue(2))
+		reset:SetEnabled(true)
+		change:SetEnabled(true)
+	end
+end

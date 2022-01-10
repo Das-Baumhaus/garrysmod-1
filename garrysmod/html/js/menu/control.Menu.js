@@ -147,6 +147,11 @@ function MenuController( $scope, $rootScope )
 		lua.Run( "OpenProblemsPanel()" );
 	}
 
+	$scope.ToggleCustomMaps = function()
+	{
+		lua.Run( "OpenCustomMapsPanel()" );
+	}
+
 	// InGame
 	$scope.InGame = false;
 	$scope.ShowFavButton = false;
