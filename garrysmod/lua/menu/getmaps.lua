@@ -214,6 +214,14 @@ local function LoadFavourites()
 
 end
 
+local custommaps
+
+local function LoadCustom()
+
+	local cookiestr = cookie.GetString( "custommaps" )
+	custommaps = util.JSONToTable( cookiestr )
+end
+
 -- Called from JS when starting a new game
 function UpdateMapList()
 
@@ -262,6 +270,7 @@ local function RefreshMaps( skip )
 
 	local maps = file.Find( "maps/*.bsp", "GAME" )
 	LoadFavourites()
+	LoadCustom()
 
 	for k, v in ipairs( maps ) do
 		local name = string.lower( string.gsub( v, "%.bsp$", "" ) )
@@ -298,9 +307,14 @@ local function RefreshMaps( skip )
 		Category = Category or "Other"
 
 		local fav
+		local custom
 
 		if ( table.HasValue( favmaps, name ) ) then
 			fav = true
+		end
+
+		if ( custommaps[name] != nil ) then
+			custom = true
 		end
 
 		local csgo = false
@@ -327,6 +341,15 @@ local function RefreshMaps( skip )
 			end
 
 			table.insert( MapList[ "Favourites" ], name )
+		end
+
+		if ( custom ) then
+			if ( !MapList[ custommaps[name] ] ) then
+				MapList[ custommaps[name] ] = {}
+			end
+
+			table.insert( MapList[ custommaps[name] ], name )
+			table.RemoveByValue( MapList[ Category ], name)
 		end
 
 		if ( csgo ) then
@@ -375,6 +398,39 @@ function ToggleFavourite( map )
 
 end
 
+function AddCustomMap( map, category )
+
+	LoadCustom()
+
+	if ( table.HasValue( custommaps, map) ) then
+		table.RemoveByValue( custommaps, map)
+	end
+	custommaps[map] = category
+	
+	cookie.Set( "custommaps", util.TableToJSON(custommaps, false))
+
+	RefreshMaps( false )
+
+	UpdateMapList()
+
+end
+
+function RemoveCustomMap( map )
+
+	LoadCustom()
+
+	if ( table.HasValue( custommaps, map) ) then
+		table.RemoveByValue( custommaps, map)
+	end
+
+	cookie.Set( "custommaps", util.TableToJSON(custommaps, false) )
+
+	RefreshMaps( false )
+
+	UpdateMapList()
+
+end
+
 function SaveLastMap( map, cat )
 
 	local t = string.Explode( ";", cookie.GetString( "lastmap", "" ) )
@@ -399,3 +455,11 @@ function LoadLastMap()
 	pnlMainMenu:Call( "SetLastMap('" .. map:JavascriptSafe() .. "','" .. cat:JavascriptSafe() .. "')" )
 
 end
+
+concommand.Add("custommap_add", function ( _, _, args )
+	AddCustomMap( args[1], args[2] )
+end)
+
+concommand.Add("custommap_del", function ( _, _, args )
+	RemoveCustomMap( args[1] )
+end)
