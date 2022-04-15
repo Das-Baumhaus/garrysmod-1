@@ -455,15 +455,27 @@ function LoadLastMap()
 
 end
 
+local frame
+
 function OpenCustomMapsPanel()
 	local selected
+	local maplist
+	local label
+	local entry
+	local change
+	local reset
 
-	local frame = vgui.Create("DFrame")
-	local maplist = vgui.Create("DListView", frame)
-	local label = vgui.Create("DLabel", frame)
-	local entry = vgui.Create("DTextEntry", frame)
-	local change = vgui.Create("DButton", frame)
-	local reset = vgui.Create("DButton", frame)
+	if !IsValid(frame) then
+		frame = vgui.Create("DFrame")
+		maplist = vgui.Create("DListView", frame)
+		label = vgui.Create("DLabel", frame)
+		entry = vgui.Create("DTextEntry", frame)
+		change = vgui.Create("DButton", frame)
+		reset = vgui.Create("DButton", frame)
+	else
+		frame:Close()
+		return
+	end
 
 	frame:SetSize(ScrW() / 3, ScrH() / 3)
 	frame:Center()
@@ -471,6 +483,7 @@ function OpenCustomMapsPanel()
 	frame:SetDraggable(false)
 	frame:SetVisible(true)
 	frame:MakePopup()
+	frame:SetDeleteOnClose(true)
 
 	label:SetPos(frame:GetWide() / 2.5, frame:GetTall() / 2 + 10)
 	label:SetSize(frame:GetWide() / 2, frame:GetTall() / 6)
