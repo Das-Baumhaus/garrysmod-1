@@ -214,12 +214,16 @@ local function LoadFavourites()
 
 end
 
-local custommaps
+local custommaps 
 
 local function LoadCustom()
 
 	local cookiestr = cookie.GetString( "custommaps" )
-	custommaps = util.JSONToTable( cookiestr )
+	if cookiestr == nil then
+		custommaps = {}
+	else
+		custommaps = util.JSONToTable( cookiestr  )
+	end
 end
 
 -- Called from JS when starting a new game
@@ -484,6 +488,12 @@ function OpenCustomMapsPanel()
 	frame:SetVisible(true)
 	frame:MakePopup()
 	frame:SetDeleteOnClose(true)
+	frame.Paint = function (_, w, h)
+		surface.SetDrawColor(105, 105, 110, 250)
+		surface.DrawRect(1, 1, w - 2, h - 2)
+		surface.SetDrawColor(0, 0, 0, 250)
+		surface.DrawOutlinedRect(0, 0, w, h, 1)
+	end
 
 	label:SetPos(frame:GetWide() / 2.5, frame:GetTall() / 2 + 10)
 	label:SetSize(frame:GetWide() / 2, frame:GetTall() / 6)
